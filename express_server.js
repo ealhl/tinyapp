@@ -10,14 +10,14 @@ const generateRandomString = () => {
   const characters =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
   const charactersLength = characters.length;
-  for (let i = 0; i <= 6; i++) {
+  for (let i = 0; i < 6; i++) {
     result += characters.charAt(Math.floor(Math.random() * charactersLength));
   }
   return result;
 };
 
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
+  "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com",
 };
 
@@ -48,7 +48,9 @@ app.get("/urls/new", (req, res) => {
 
 app.post("/urls", (req, res) => {
   console.log(req.body); // Log the POST request body to the console
-  res.send("Ok"); // Respond with 'Ok' (we will replace this)
+  const shortId = generateRandomString();
+  urlDatabase[shortId] = req.body.longURL;
+  res.redirect(`urls/${shortId}`); // Respond with 'Ok' (we will replace this)
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -56,5 +58,8 @@ app.get("/urls/:id", (req, res) => {
     id: req.params.id,
     longURL: urlDatabase[req.params.id],
   };
+  // const longURL = urlDatabase[req.params.id];
   res.render("urls_show", templateVars);
+  // res.redirect(longURL);
 });
+
