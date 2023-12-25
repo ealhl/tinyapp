@@ -47,10 +47,14 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  console.log(req.body); // Log the POST request body to the console
   const shortId = generateRandomString();
   urlDatabase[shortId] = req.body.longURL;
   res.redirect(`urls/${shortId}`); // Respond with 'Ok' (we will replace this)
+});
+
+app.post("/urls/:id/delete", (req, res) => {
+  delete urlDatabase[req.params.id];
+  res.redirect("/urls");
 });
 
 app.get("/urls/:id", (req, res) => {
@@ -60,4 +64,5 @@ app.get("/urls/:id", (req, res) => {
   };
   res.render("urls_show", templateVars);
 });
+
 
