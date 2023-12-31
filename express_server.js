@@ -55,14 +55,8 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const username = req.body.username;
-  res.cookie("username", username);
-  res.redirect("/register");
-  // const templateVars = {
-  //   email: req.cookies["email"],
-  //   password: req.cookies["password"],
-  // };
-  // res.render("urls_new", templateVars);
+  const templateVars = { username: req.cookies["username"] };
+  res.render("register", templateVars);
 });
 
 /**random id number function */
