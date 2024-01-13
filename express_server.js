@@ -2,21 +2,11 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const cookieParser = require("cookie-parser");
+const { generateRandomString, findUserByEmail } = require("./helper");
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-
-const generateRandomString = () => {
-  let result = "";
-  const characters =
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-  const charactersLength = characters.length;
-  for (let i = 0; i < 6; i++) {
-    result += characters.charAt(Math.floor(Math.random() * charactersLength));
-  }
-  return result;
-};
 
 const urlDatabase = {
   b2xVn2: "http://www.lighthouselabs.ca",
@@ -190,13 +180,8 @@ app.post("/register", (req, res) => {
     res.status(400).send("please provide username and password");
   }
 
-  let foundUser;
-  for (let userId in users) {
-    const user = users[userId];
-    if (user.email === email) {
-      foundUser = user;
-    }
-  }
+  let foundUser = findUserByEmail(email, users);
+
   if (foundUser) {
     res.status(400).send("user already exists");
   }
