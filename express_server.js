@@ -58,17 +58,19 @@ app.get("/hello", (req, res) => {
 /** direct to /urls page with login/logout and display all urls with edit and delete function*/
 app.get("/urls", (req, res) => {
   const userId = req.cookies.userId;
+  console.log("urlsid: ", userId);
 
   if (!userId) {
     res.status(400).send("please login or register");
   }
 
   const user = users[userId];
-  
+
   const templateVars = {
     user,
     urls: urlDatabase,
   };
+  console.log("urlsuser: ", user.email);
 
   res.render("urls_index", templateVars);
 });
@@ -105,17 +107,6 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  // const userId = req.cookies.userId;
-  // console.log("register: ", userId);
-
-  // if (userId) {
-  //   const user = users[userId];
-
-  //   const templateVars = {
-  //     user,
-  //   };
-  //   res.render("urls_index", templateVars);
-  // }
   res.render("register");
 });
 
@@ -169,7 +160,7 @@ app.post("/login", (req, res) => {
     res.status(401).send("Invaild username/password");
   }
 
-  res.cookie("userId", foundUser);
+  res.cookie("userId", foundUser.id);
   res.redirect("/urls");
 });
 
@@ -220,7 +211,7 @@ app.post("/register", (req, res) => {
   users[id] = newUser;
 
   console.log("register newUser", newUser);
-
+  console.log("register user id", id);
   res.cookie("userId", id);
-  res.redirect(`urls`);
+  res.redirect("urls");
 });
