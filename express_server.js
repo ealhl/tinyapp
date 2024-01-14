@@ -9,8 +9,14 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
 const urlDatabase = {
-  b2xVn2: "http://www.lighthouselabs.ca",
-  "9sm5xK": "http://www.google.com",
+  userRandomID: {
+    b2xVn2: "http://www.lighthouselabs.ca",
+    "9sm5xK": "http://www.google.com",
+  },
+  user2RandomID: {
+    vhg2aa: "https://ca.yahoo.com/?p=us",
+    er43we: "https://www.geeksforgeeks.org/",
+  },
 };
 
 const users = {
@@ -25,14 +31,23 @@ const users = {
     password: "dishwasher-funk",
   },
 };
-/** return all urls on database  */
-app.get("/urls.json", (req, res) => {
-  res.json(urlDatabase);
-});
 
 /** direct to home page and return hello*/
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const userId = req.cookies.userId;
+
+  if (!userId) {
+    res.render("login");
+  }
+
+  const user = users[userId];
+
+  const templateVars = {
+    user,
+    urls: urlDatabase[userId],
+  };
+
+  res.render("urls_index", templateVars);
 });
 
 /** display message on terminal when server start */
@@ -57,15 +72,14 @@ app.get("/urls", (req, res) => {
 
   const templateVars = {
     user,
-    urls: urlDatabase,
+    urls: urlDatabase[userId],
   };
-
   res.render("urls_index", templateVars);
 });
 
 /** direct /urls/new page  */
 app.get("/urls/new", (req, res) => {
-  const { userId} = req.cookies;
+  const { userId } = req.cookies;
 
   if (!userId) {
     res.render("login");
@@ -75,7 +89,7 @@ app.get("/urls/new", (req, res) => {
 
   const templateVars = {
     user,
-    urls: urlDatabase,
+    urls: urlDatabase[userId],
   };
 
   res.render("urls_new", templateVars);
@@ -89,7 +103,7 @@ app.get("/login", (req, res) => {
 
     const templateVars = {
       user,
-      urls: urlDatabase,
+      urls: urlDatabase[userId],
     };
 
     res.render("urls_index", templateVars);
@@ -99,7 +113,6 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-
   const userId = req.cookies.userId;
 
   if (userId) {
@@ -107,7 +120,7 @@ app.get("/register", (req, res) => {
 
     const templateVars = {
       user,
-      urls: urlDatabase,
+      urls: urlDatabase[userId],
     };
 
     res.render("register", templateVars);
@@ -120,7 +133,11 @@ app.get("/urls/:id", (req, res) => {
   const userId = req.cookies.userId;
 
   if (!userId) {
-    res.render("login");
+    res.status(400).send("please login or register");
+  }
+
+  if (!urlDatabase[userId][req.params.id]) {
+    res.status(400).send("you don't have this url");
   }
 
   const user = users[userId];
@@ -128,15 +145,41 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = {
     user,
     id: req.params.id,
-    longURL: urlDatabase[req.params.id],
+    longURL: urlDatabase[userId][req.params.id],
   };
   res.render("urls_show", templateVars);
 });
 
+app.get("/u/:id", (req, res) => {
+  const userId = req.cookies.userId;
+
+  if (!userId) {
+    res.status(400).send("please login or register");
+  }
+
+  if (!urlDatabase[userId][req.params.id]) {
+    res.status(400).send("you don't have this url");
+  }
+
+  console.log("urlDatabase[userId][req.params.id: ", urlDatabase[userId][req.params.id]);
+
+  res.status(301).redirect(urlDatabase[userId][req.params.id]);
+});
+
 /**random id number function */
 app.post("/urls", (req, res) => {
+  const userId = req.cookies.userId;
+
+  if (!userId) {
+    res.status(400).send("please login or register");
+  }
+
   const shortId = generateRandomString();
-  urlDatabase[shortId] = req.body.longURL;
+  console.log("before urls add parms id: ", urlDatabase[userId]);
+  console.log("shortId: ", shortId);
+  console.log("longURL: ", req.body.longURL);
+  urlDatabase[userId][shortId] = req.body.longURL;
+  console.log("after urls add parms id: ", urlDatabase[userId]);
   res.redirect(`urls/${shortId}`);
 });
 
@@ -165,26 +208,48 @@ app.post("/login", (req, res) => {
 
 /**logout*/
 app.post("/logout", (req, res) => {
-  res.clearCookie('userId');
+  res.clearCookie("userId");
   res.redirect("/login");
 });
 /**delete url */
 app.post("/urls/:id/delete", (req, res) => {
-  delete urlDatabase[req.params.id];
+  
+  if (!userId) {
+    res.status(400).send("please login or register");
+  }
+
+  if (!urlDatabase[userId][req.params.id]) {
+    res.status(400).send("you don't have this url");
+  }
+
+  const userId = req.cookies.userId;
+  delete urlDatabase[userId][req.params.id];
+
   res.redirect("/login");
 });
 
 /** update urls link */
 app.post("/urls/:id", (req, res) => {
-  urlDatabase[req.params.id] = req.body.longURL;
+  const userId = req.cookies.userId;
+
+  if (!userId) {
+    res.status(400).send("please login or register");
+  }
+
+  if (!urlDatabase[userId][req.params.id]) {
+    res.status(400).send("you don't have this url");
+  }
+
+  console.log("before add parms id: ", urlDatabase[userId]);
+  urlDatabase[userId][req.params.id] = req.body.longURL;
+  console.log("after add parms id: ", urlDatabase[userId]);
   res.redirect("/urls");
 });
 
 app.post("/register", (req, res) => {
-
   const email = req.body.email;
   const password = req.body.password;
-  
+
   if (!email || !password) {
     res.status(400).send("please provide username and password");
   }
