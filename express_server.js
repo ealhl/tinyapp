@@ -66,7 +66,6 @@ app.get("/urls", (req, res) => {
 /** direct /urls/new page  */
 app.get("/urls/new", (req, res) => {
   const { userId} = req.cookies;
-  console.log("news userId:", userId);
 
   if (!userId) {
     res.render("login");
@@ -172,7 +171,7 @@ app.post("/login", (req, res) => {
 
 /**logout*/
 app.post("/logout", (req, res) => {
-  res.clearCookie("userId");
+  res.clearCookie('userId');
   res.redirect("/login");
 });
 /**delete url */
@@ -197,7 +196,6 @@ app.post("/register", (req, res) => {
   }
 
   let foundUser = findUserByEmail(email, users);
-  console.log("foundUser", foundUser);
 
   if (foundUser) {
     res.status(400).send("user already exists");
