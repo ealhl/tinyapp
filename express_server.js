@@ -48,7 +48,6 @@ app.get("/hello", (req, res) => {
 /** direct to /urls page with login/logout and display all urls with edit and delete function*/
 app.get("/urls", (req, res) => {
   const userId = req.cookies.userId;
-  console.log("urlsid: ", userId);
 
   if (!userId) {
     res.status(400).send("please login or register");
@@ -60,14 +59,14 @@ app.get("/urls", (req, res) => {
     user,
     urls: urlDatabase,
   };
-  console.log("urlsuser: ", user.email);
 
   res.render("urls_index", templateVars);
 });
 
 /** direct /urls/new page  */
 app.get("/urls/new", (req, res) => {
-  const userId = req.cookies.userId;
+  const { userId} = req.cookies;
+  console.log("news userId:", userId);
 
   if (!userId) {
     res.render("login");
@@ -77,9 +76,10 @@ app.get("/urls/new", (req, res) => {
 
   const templateVars = {
     user,
+    urls: urlDatabase,
   };
 
-  res.render("urls_index", templateVars);
+  res.render("urls_new", templateVars);
 });
 
 app.get("/login", (req, res) => {
@@ -90,13 +90,29 @@ app.get("/login", (req, res) => {
 
     const templateVars = {
       user,
+      urls: urlDatabase,
     };
+
     res.render("urls_index", templateVars);
   }
+
   res.render("login");
 });
 
 app.get("/register", (req, res) => {
+
+  const userId = req.cookies.userId;
+
+  if (userId) {
+    const user = users[userId];
+
+    const templateVars = {
+      user,
+      urls: urlDatabase,
+    };
+
+    res.render("register", templateVars);
+  }
   res.render("register");
 });
 
@@ -131,7 +147,7 @@ app.post("/login", (req, res) => {
   const password = req.body.password;
 
   if (!email || !password) {
-    res.status(400).send("please provide username and password");
+    res.status(403).send("please provide username and password");
   }
 
   let foundUser;
@@ -143,11 +159,11 @@ app.post("/login", (req, res) => {
   }
 
   if (!foundUser) {
-    res.status(401).send("Invaild username/password");
+    res.status(403).send("Invaild username/password");
   }
 
   if (foundUser.password !== password) {
-    res.status(401).send("Invaild username/password");
+    res.status(403).send("Invaild username/password");
   }
 
   res.cookie("userId", foundUser.id);
@@ -157,13 +173,12 @@ app.post("/login", (req, res) => {
 /**logout*/
 app.post("/logout", (req, res) => {
   res.clearCookie("userId");
-  res.clearCookie("email");
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 /**delete url */
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
-  res.redirect("/urls");
+  res.redirect("/login");
 });
 
 /** update urls link */
@@ -173,14 +188,16 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.post("/register", (req, res) => {
+
   const email = req.body.email;
   const password = req.body.password;
-
+  
   if (!email || !password) {
     res.status(400).send("please provide username and password");
   }
 
   let foundUser = findUserByEmail(email, users);
+  console.log("foundUser", foundUser);
 
   if (foundUser) {
     res.status(400).send("user already exists");
@@ -195,8 +212,6 @@ app.post("/register", (req, res) => {
   };
   users[id] = newUser;
 
-  console.log("register newUser", newUser);
-  console.log("register user id", id);
   res.cookie("userId", id);
   res.redirect("urls");
 });

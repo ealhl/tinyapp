@@ -4,11 +4,17 @@
     <meta charset="utf-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1, shrink-to-fit=no"
+      content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+      <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css"
+      integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS"
+      crossorigin="anonymous"
     />
     <title>TinyApp Example</title>
   </head>
   <body>
+    <%- include('../views/partials/_header.ejs') %>
     <main>
       <h3>Login</h3>
       <form class="form-inline" action="/login" method="POST">
@@ -28,7 +34,6 @@
           <button type="submit" class="btn btn-primary">login</button>
         </div>
       </form>
-      <p>Don't have an account? <a href="/register">Register</a></p>
     </main>
         <!-- Bootstrap JS -->
         <script

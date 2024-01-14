@@ -11,7 +11,8 @@ const generateRandomString = () => {
 const findUserByEmail = (email, users) => {
   for (const userId in users) {
     const user = users[userId];
-    if (user.username === email) {
+    console.log("find user.email", user.email);
+    if (user.email === email) {
       return user;
     }
   }
