@@ -146,23 +146,17 @@ app.post("/login", (req, res) => {
   const password = req.body.password;
 
   if (!email || !password) {
-    res.status(403).send("please provide username and password");
+    res.status(403).send("please provide email and password");
   }
 
-  let foundUser;
-  for (let userId in users) {
-    const user = users[userId];
-    if (user.email === email) {
-      foundUser = user;
-    }
-  }
+  let foundUser = findUserByEmail(email, users);
 
   if (!foundUser) {
-    res.status(403).send("Invaild username/password");
+    res.status(403).send("Invaild email/password");
   }
 
   if (foundUser.password !== password) {
-    res.status(403).send("Invaild username/password");
+    res.status(403).send("Invaild email/password");
   }
 
   res.cookie("userId", foundUser.id);
