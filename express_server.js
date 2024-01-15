@@ -12,6 +12,9 @@ app.use(cookieSession({
   keys: ['232334'],
 }));
 
+const urlsForUser = (id) => {
+  return urlDatabase[id];
+};
 const urlDatabase = {
   userRandomID: {
     b2xVn2: "http://www.lighthouselabs.ca",
@@ -23,9 +26,6 @@ const urlDatabase = {
   },
 };
 
-const urlsForUser = (id) => {
-  return urlDatabase[id];
-};
 const password = "purple-monkey-dinosaur";
 const password2 = "dishwasher-funk";
 const hashedPassword = bcrypt.hashSync(password, 10);
@@ -74,8 +74,6 @@ app.get("/hello", (req, res) => {
 
 /** direct to /urls page with login/logout and display all urls with edit and delete function*/
 app.get("/urls", (req, res) => {
-  console.log("req.session: ");
-  console.log(req.session);
   const userId = req.session.userId;
 
   if (!userId) {
@@ -83,10 +81,7 @@ app.get("/urls", (req, res) => {
   }
 
   const user = users[userId];
-
   const userUrls = urlsForUser(userId);
-  console.log("userUrls: ", userUrls);
-
   const templateVars = {
     user,
     urls: userUrls,
@@ -129,6 +124,7 @@ app.get("/login", (req, res) => {
   res.render("login");
 });
 
+/** direct to register page */
 app.get("/register", (req, res) => {
   const userId = req.session.userId;
 
@@ -182,21 +178,12 @@ app.get("/u/:id", (req, res) => {
 /**random id number function */
 app.post("/urls", (req, res) => {
   const userId = req.session.userId;
-  console.log("userId: ", userId);
 
   if (!userId) {
     res.status(400).send("please login or register");
   }
-
   const shortId = generateRandomString();
-  console.log(urlDatabase);
-  console.log("before urls add parms id: ", urlDatabase[userId]);
-  console.log("user find: ", users.userId);
-  console.log("shortId: ", shortId);
-  console.log("longURL: ", req.body.longURL);
-  // console.log("urlDatabase[userId][shortId]:", urlDatabase[userId]);
   urlDatabase[userId][shortId] = req.body.longURL;
-  console.log("after urls add parms id: ", urlDatabase[userId]);
   res.redirect(`urls/${shortId}`);
 });
 
@@ -210,22 +197,16 @@ app.post("/login", (req, res) => {
   }
 
   let foundUser = getUserByEmail(email, users);
-  console.log("foundUser: ", foundUser);
-  console.log(users);
 
   if (!foundUser) {
     res.status(403).send("Invaild email/password");
   }
-  console.log("foundUser.password: ", foundUser.password);
-  console.log("password: ", password);
-  console.log("compare result: ", bcrypt.compareSync(password, foundUser.password));
 
   if (!bcrypt.compareSync(password, foundUser.password)) {
     res.status(403).send("Invaild email/password");
   }
 
   req.session.userId = foundUser.id;
-  console.log("login session.userId: ", req.session.userId);
   res.redirect("/urls");
 });
 
@@ -234,6 +215,7 @@ app.post("/logout", (req, res) => {
   req.session = null;
   res.redirect("/login");
 });
+
 /**delete url */
 app.post("/urls/:id/delete", (req, res) => {
 
@@ -289,7 +271,6 @@ app.post("/register", (req, res) => {
     password,
   };
   users[id] = newUser;
-  console.log(users);
   req.session.userId = id;
   urlDatabase[id] = {};
   res.redirect("urls");
