@@ -2,10 +2,15 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const bcrypt = require("bcryptjs");
-const { generateRandomString, findUserByEmail } = require("./helper");
+const cookieSession = require('cookie-session');
+const { generateRandomString, getUserByEmail } = require("./helper");
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieSession({
+  name: 'session',
+  keys: [232334],
+}));
 
 const urlDatabase = {
   userRandomID: {
@@ -69,7 +74,8 @@ app.get("/hello", (req, res) => {
 
 /** direct to /urls page with login/logout and display all urls with edit and delete function*/
 app.get("/urls", (req, res) => {
-  console.log("/urls req.session: ", req.session);
+  console.log("req.session: ");
+  console.log(req.session);
   const userId = req.session.userId;
 
   if (!userId) {
@@ -89,8 +95,7 @@ app.get("/urls", (req, res) => {
 
 /** direct /urls/new page  */
 app.get("/urls/new", (req, res) => {
-  console.log("/urls/new session: ", req.session);
-  const { userId } = req.session;
+  const userId = req.session.userId;
 
   if (!userId) {
     res.render("login");
@@ -199,7 +204,7 @@ app.post("/login", (req, res) => {
     res.status(403).send("please provide email and password");
   }
 
-  let foundUser = findUserByEmail(email, users);
+  let foundUser = getUserByEmail(email, users);
 
   if (!foundUser) {
     res.status(403).send("Invaild email/password");
@@ -212,7 +217,8 @@ app.post("/login", (req, res) => {
     res.status(403).send("Invaild email/password");
   }
 
-  res.session("userId", foundUser.id);
+  req.session.userId = foundUser.id;
+  console.log("login session.userId: ", req.session.userId);
   res.redirect("/urls");
 });
 
@@ -223,6 +229,8 @@ app.post("/logout", (req, res) => {
 });
 /**delete url */
 app.post("/urls/:id/delete", (req, res) => {
+
+  const userId = req.session.userId;
   if (!userId) {
     res.status(400).send("please login or register");
   }
@@ -231,7 +239,6 @@ app.post("/urls/:id/delete", (req, res) => {
     res.status(400).send("you don't have this url");
   }
 
-  const userId = req.session.userId;
   delete urlDatabase[userId][req.params.id];
 
   res.redirect("/login");
@@ -239,7 +246,7 @@ app.post("/urls/:id/delete", (req, res) => {
 
 /** update urls link */
 app.post("/urls/:id", (req, res) => {
-  const userId = req.sessions.userId;
+  const userId = req.session.userId;
 
   if (!userId) {
     res.status(400).send("please login or register");
@@ -261,7 +268,7 @@ app.post("/register", (req, res) => {
     res.status(400).send("please provide username and password");
   }
 
-  let foundUser = findUserByEmail(email, users);
+  let foundUser = getUserByEmail(email, users);
 
   if (foundUser) {
     res.status(400).send("user already exists");
@@ -276,6 +283,6 @@ app.post("/register", (req, res) => {
   };
   users[id] = newUser;
 
-  res.session("userId", id);
+  req.session.userId = id;
   res.redirect("urls");
 });
