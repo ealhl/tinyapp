@@ -123,7 +123,7 @@ app.get("/register", (req, res) => {
       urls: urlDatabase[userId],
     };
 
-    res.render("register", templateVars);
+    res.render("urls_index", templateVars);
   }
   res.render("register");
 });
@@ -151,19 +151,15 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.get("/u/:id", (req, res) => {
-  const userId = req.cookies.userId;
-
-  if (!userId) {
-    res.status(400).send("please login or register");
-  }
-
-  if (!urlDatabase[userId][req.params.id]) {
-    res.status(400).send("you don't have this url");
-  }
-
-  console.log("urlDatabase[userId][req.params.id: ", urlDatabase[userId][req.params.id]);
-
-  res.status(301).redirect(urlDatabase[userId][req.params.id]);
+  Object.keys(urlDatabase).forEach((userId) => {
+    for (let key in urlDatabase[userId]) {
+      if (Object.prototype.hasOwnProperty.call(urlDatabase[userId], key)) {
+        if (key === req.params.id) {
+          res.status(301).redirect(urlDatabase[userId][key]);
+        }
+      }
+    }
+  });
 });
 
 /**random id number function */
@@ -213,7 +209,6 @@ app.post("/logout", (req, res) => {
 });
 /**delete url */
 app.post("/urls/:id/delete", (req, res) => {
-  
   if (!userId) {
     res.status(400).send("please login or register");
   }
