@@ -9,7 +9,7 @@ app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: 'session',
-  keys: [232334],
+  keys: ['232334'],
 }));
 
 const urlDatabase = {
@@ -85,6 +85,7 @@ app.get("/urls", (req, res) => {
   const user = users[userId];
 
   const userUrls = urlsForUser(userId);
+  console.log("userUrls: ", userUrls);
 
   const templateVars = {
     user,
@@ -181,15 +182,19 @@ app.get("/u/:id", (req, res) => {
 /**random id number function */
 app.post("/urls", (req, res) => {
   const userId = req.session.userId;
+  console.log("userId: ", userId);
 
   if (!userId) {
     res.status(400).send("please login or register");
   }
 
   const shortId = generateRandomString();
+  console.log(urlDatabase);
   console.log("before urls add parms id: ", urlDatabase[userId]);
+  console.log("user find: ", users.userId);
   console.log("shortId: ", shortId);
   console.log("longURL: ", req.body.longURL);
+  // console.log("urlDatabase[userId][shortId]:", urlDatabase[userId]);
   urlDatabase[userId][shortId] = req.body.longURL;
   console.log("after urls add parms id: ", urlDatabase[userId]);
   res.redirect(`urls/${shortId}`);
@@ -205,6 +210,8 @@ app.post("/login", (req, res) => {
   }
 
   let foundUser = getUserByEmail(email, users);
+  console.log("foundUser: ", foundUser);
+  console.log(users);
 
   if (!foundUser) {
     res.status(403).send("Invaild email/password");
@@ -282,7 +289,8 @@ app.post("/register", (req, res) => {
     password,
   };
   users[id] = newUser;
-
+  console.log(users);
   req.session.userId = id;
+  urlDatabase[id] = {};
   res.redirect("urls");
 });
