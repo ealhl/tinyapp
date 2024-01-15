@@ -23,3 +23,12 @@ describe("getUserByEmail", function () {
     assert.equal(user.id, expectedUserID);
   });
 });
+
+describe("getUserByEmail undefined", function () {
+  it("should return a undefined with invalid email", function () {
+    const user = getUserByEmail("fake@example.com", testUsers);
+    // Write your assert statement here
+    assert.isNull(user, 'no user undefined');
+
+  });
+});
