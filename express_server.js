@@ -215,8 +215,6 @@ app.post("/logout", (req, res) => {
 });
 /**delete url */
 app.post("/urls/:id/delete", (req, res) => {
-  console.log("delete req.params.id: ", req.params.id);
-
   if (!userId) {
     res.status(400).send("please login or register");
   }
@@ -243,9 +241,7 @@ app.post("/urls/:id", (req, res) => {
     res.status(400).send("you don't have this url");
   }
 
-  console.log("before add parms id: ", urlDatabase[userId]);
   urlDatabase[userId][req.params.id] = req.body.longURL;
-  console.log("after add parms id: ", urlDatabase[userId]);
   res.redirect("/urls");
 });
 
