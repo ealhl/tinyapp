@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
 const cookieParser = require("cookie-parser");
+const bcrypt = require("bcryptjs");
 const { generateRandomString, findUserByEmail } = require("./helper");
 
 app.set("view engine", "ejs");
@@ -22,17 +23,21 @@ const urlDatabase = {
 const urlsForUser = (id) => {
   return urlDatabase[id];
 };
+const password = "purple-monkey-dinosaur";
+const password2 = "dishwasher-funk";
+const hashedPassword = bcrypt.hashSync(password, 10);
+const hashedPassword2 = bcrypt.hashSync(password2, 10);
 
 const users = {
   userRandomID: {
     id: "userRandomID",
     email: "user@example.com",
-    password: "purple-monkey-dinosaur",
+    password: hashedPassword,
   },
   user2RandomID: {
     id: "user2RandomID",
     email: "user2@example.com",
-    password: "dishwasher-funk",
+    password: hashedPassword2,
   },
 };
 
@@ -199,8 +204,11 @@ app.post("/login", (req, res) => {
   if (!foundUser) {
     res.status(403).send("Invaild email/password");
   }
+  console.log("foundUser.password: ", foundUser.password);
+  console.log("password: ", password);
+  console.log("compare result: ", bcrypt.compareSync(password, foundUser.password));
 
-  if (foundUser.password !== password) {
+  if (!bcrypt.compareSync(password, foundUser.password)) {
     res.status(403).send("Invaild email/password");
   }
 
