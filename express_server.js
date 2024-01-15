@@ -1,13 +1,11 @@
 const express = require("express");
 const app = express();
 const PORT = 8080; // default port 8080
-const cookieParser = require("cookie-parser");
 const bcrypt = require("bcryptjs");
 const { generateRandomString, findUserByEmail } = require("./helper");
 
 app.set("view engine", "ejs");
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
 
 const urlDatabase = {
   userRandomID: {
@@ -43,7 +41,7 @@ const users = {
 
 /** direct to home page and return hello*/
 app.get("/", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
 
   if (!userId) {
     res.render("login");
@@ -71,7 +69,8 @@ app.get("/hello", (req, res) => {
 
 /** direct to /urls page with login/logout and display all urls with edit and delete function*/
 app.get("/urls", (req, res) => {
-  const userId = req.cookies.userId;
+  console.log("/urls req.session: ", req.session);
+  const userId = req.session.userId;
 
   if (!userId) {
     res.status(400).send("please login or register");
@@ -90,7 +89,8 @@ app.get("/urls", (req, res) => {
 
 /** direct /urls/new page  */
 app.get("/urls/new", (req, res) => {
-  const { userId } = req.cookies;
+  console.log("/urls/new session: ", req.session);
+  const { userId } = req.session;
 
   if (!userId) {
     res.render("login");
@@ -107,7 +107,7 @@ app.get("/urls/new", (req, res) => {
 });
 
 app.get("/login", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
 
   if (userId) {
     const user = users[userId];
@@ -124,7 +124,7 @@ app.get("/login", (req, res) => {
 });
 
 app.get("/register", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
 
   if (userId) {
     const user = users[userId];
@@ -141,7 +141,7 @@ app.get("/register", (req, res) => {
 
 /** direct to urls/:id page */
 app.get("/urls/:id", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
 
   if (!userId) {
     res.status(400).send("please login or register");
@@ -175,7 +175,7 @@ app.get("/u/:id", (req, res) => {
 
 /**random id number function */
 app.post("/urls", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
 
   if (!userId) {
     res.status(400).send("please login or register");
@@ -212,13 +212,13 @@ app.post("/login", (req, res) => {
     res.status(403).send("Invaild email/password");
   }
 
-  res.cookie("userId", foundUser.id);
+  res.session("userId", foundUser.id);
   res.redirect("/urls");
 });
 
 /**logout*/
 app.post("/logout", (req, res) => {
-  res.clearCookie("userId");
+  req.session = null;
   res.redirect("/login");
 });
 /**delete url */
@@ -231,7 +231,7 @@ app.post("/urls/:id/delete", (req, res) => {
     res.status(400).send("you don't have this url");
   }
 
-  const userId = req.cookies.userId;
+  const userId = req.session.userId;
   delete urlDatabase[userId][req.params.id];
 
   res.redirect("/login");
@@ -239,7 +239,7 @@ app.post("/urls/:id/delete", (req, res) => {
 
 /** update urls link */
 app.post("/urls/:id", (req, res) => {
-  const userId = req.cookies.userId;
+  const userId = req.sessions.userId;
 
   if (!userId) {
     res.status(400).send("please login or register");
@@ -255,7 +255,7 @@ app.post("/urls/:id", (req, res) => {
 
 app.post("/register", (req, res) => {
   const email = req.body.email;
-  const password = req.body.password;
+  const password = bcrypt.hashSync(req.body.password, 10);
 
   if (!email || !password) {
     res.status(400).send("please provide username and password");
@@ -276,6 +276,6 @@ app.post("/register", (req, res) => {
   };
   users[id] = newUser;
 
-  res.cookie("userId", id);
+  res.session("userId", id);
   res.redirect("urls");
 });
