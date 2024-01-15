@@ -19,6 +19,10 @@ const urlDatabase = {
   },
 };
 
+const urlsForUser = (id) => {
+  return urlDatabase[id];
+};
+
 const users = {
   userRandomID: {
     id: "userRandomID",
@@ -70,9 +74,11 @@ app.get("/urls", (req, res) => {
 
   const user = users[userId];
 
+  const userUrls = urlsForUser(userId);
+
   const templateVars = {
     user,
-    urls: urlDatabase[userId],
+    urls: userUrls,
   };
   res.render("urls_index", templateVars);
 });
@@ -209,6 +215,8 @@ app.post("/logout", (req, res) => {
 });
 /**delete url */
 app.post("/urls/:id/delete", (req, res) => {
+  console.log("delete req.params.id: ", req.params.id);
+
   if (!userId) {
     res.status(400).send("please login or register");
   }
